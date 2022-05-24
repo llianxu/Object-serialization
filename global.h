@@ -7,5 +7,6 @@
 #include <vector>
 #include <list>
 #include <typeinfo>
+#include <set>
 
 #endif

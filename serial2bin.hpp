@@ -7,25 +7,26 @@ using namespace std;
 
 namespace serial2bin{
     template<class T>
-    void serialize(T& object, string fileName){
+    void serialize(T& item, string fileName){
         fstream file;
         file.open(fileName, ios::out | ios::binary);
-        file.write(reinterpret_cast<char*>(&object), sizeof(object));
+        file.write(reinterpret_cast<char*>(&item), sizeof(item));
         file.flush();
         file.close();
     }
 
     template<class T>
-    void deserialize(T object, string fileName){
+    void deserialize(T& item, string fileName){
         fstream file;
         file.open(fileName, ios::in | ios::binary);
-        file.read(reinterpret_cast<char*>(&object), sizeof(object));
+        file.read(reinterpret_cast<char*>(&item), sizeof(item));
         file.close();
     }
 
     // string's serialize
     //string_write is used to write string to the binary data
-    static void write(string& str, ostream& file){
+    // const for set
+    static void write(const string& str, ostream& file){
         int n = str.size();
         file.write(reinterpret_cast<char*>(&n), sizeof(n));
         file.write(str.c_str(), n);
@@ -202,5 +203,72 @@ namespace serial2bin{
         file.flush();
         file.close();
     }
+
+    //set's serialize
+	//set_write is used to write set to the binary file
+    template<class T>
+    static void write(set<T>& s, ostream& file){
+        int n = s.size();
+        file.write(reinterpret_cast<char*>(&n), sizeof(n));
+        for(auto& item : s){
+            T* ptr = const_cast<T*>(&item);
+            file.write(reinterpret_cast<char*>(ptr), sizeof(item));
+        }
+        return ;
+    }
+
+    static void write(set<string>& s, ostream& file){
+        int n = s.size();
+        file.write(reinterpret_cast<char*>(&n), sizeof(n));
+        for(auto& item : s){
+            write(item, file);
+        }
+        return ;
+    }
+
+    template<class T>
+    void serialize(set<T> &s, string fileName){
+        fstream file;
+        file.open(fileName, ios::out | ios::binary);
+        write(s, file);
+        file.flush();
+        file.close();
+    }
+
+    //set's deserialize
+	//set_read is used to read set from the binary file
+    template<class T>
+    static void read(set<T>& s, istream& file){
+        int n = s.size();
+        file.read(reinterpret_cast<char*>(&n), sizeof(n));
+        for(int i=0; i<n; i++){
+            T item;
+            file.read(reinterpret_cast<char*>(&item), sizeof(item));
+            s.insert(item);
+        }
+    }
+
+    static void read(set<string>& s, istream& file){
+        int n = s.size();
+        file.read(reinterpret_cast<char*>(&n), sizeof(n));
+        for(int i=0; i<n; i++){
+            string str;
+            read(str, file);
+            s.insert(str);
+        }
+        return ;
+    }
+
+    template<class T>
+    void deserialize(set<T>& s, string fileName){
+        fstream file;
+        file.open(fileName, ios::in | ios::binary);
+        read(s, file);
+        file.flush();
+        file.close();
+    }
+
+    
+
 }
 #endif
