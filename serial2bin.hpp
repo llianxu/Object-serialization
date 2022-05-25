@@ -239,22 +239,28 @@ namespace serial2bin{
 	//set_read is used to read set from the binary file
     template<class T>
     static void read(set<T>& s, istream& file){
-        int n = s.size();
-        file.read(reinterpret_cast<char*>(&n), sizeof(n));
-        for(int i=0; i<n; i++){
-            T item;
-            file.read(reinterpret_cast<char*>(&item), sizeof(item));
-            s.insert(item);
+        if(!file.eof()){
+            s.clear();
+            int n = 0;
+            file.read(reinterpret_cast<char*>(&n), sizeof(n));
+            for(int i=0; i<n; i++){
+                T item;
+                file.read(reinterpret_cast<char*>(&item), sizeof(item));
+                s.insert(item);
+            }
         }
     }
 
     static void read(set<string>& s, istream& file){
-        int n = s.size();
-        file.read(reinterpret_cast<char*>(&n), sizeof(n));
-        for(int i=0; i<n; i++){
-            string str;
-            read(str, file);
-            s.insert(str);
+        if(!file.eof()){
+            s.clear();
+            int n = 0;
+            file.read(reinterpret_cast<char*>(&n), sizeof(n));
+            for(int i=0; i<n; i++){
+                string str;
+                read(str, file);
+                s.insert(str);
+            }
         }
         return ;
     }
@@ -268,7 +274,142 @@ namespace serial2bin{
         file.close();
     }
 
-    
+    //map's serialize
+    //map_write is used to write map to the binary file
+    template<class K, class V>
+    static void write(map<K,V>& m, ostream& file){
+        int n = m.size();
+        file.write(reinterpret_cast<char*>(&n), sizeof(n));
+        for(auto& item : m){
+            K* ptrk = const_cast<K*>(&(item.first));
+            file.write(reinterpret_cast<char*>(ptrk), sizeof(item.first));
+            V* ptrv = const_cast<V*>(&(item.second));
+            file.write(reinterpret_cast<char*>(ptrv),sizeof(item.second));
+        }
+        return ;
+    }
 
+    template<class K>
+    static void write(map<K,string>& m, ostream& file){
+        int n = m.size();
+        file.write(reinterpret_cast<char*>(&n), sizeof(n));
+        for(auto& item : m){
+            K* ptrk;
+            ptrk = const_cast<K*>(&(item.first));
+            file.write(reinterpret_cast<char*>(ptrk), sizeof(item.first));
+            write(item.second, file);
+        }
+        return ;
+    }
+
+    template<class V>
+    static void write(map<string,V>& m, ostream& file){
+        int n = m.size();
+        file.write(reinterpret_cast<char*>(&n), sizeof(n));
+        for(auto& item : m){
+            write(item.first, file);
+            V* ptrv;
+            ptrv = const_cast<V*>(&(item.second));
+            file.write(reinterpret_cast<char*>(ptrv), sizeof(item.second));
+        }
+        return ;
+    }
+
+    static void write(map<string, string>& m, ostream& file){
+        int n = m.size();
+        file.write(reinterpret_cast<char*>(&n), sizeof(n));
+        for(auto& item : m){
+            write(item.first, file);
+            write(item.second, file);
+        }
+        return ;
+    }
+
+    template<class K, class V>
+    static void serialize(map<K,V>& m, string fileName){
+        fstream file;
+        file.open(fileName, ios::out | ios::binary);
+        write(m, file);
+        file.flush();
+        file.close();
+    }
+
+    //map's deserialize
+    //map_read is used to read map from the binary file
+    template<class K, class V>
+    static void read(map<K,V>& m, istream& file){
+        if(!file.eof()){
+            m.clear();
+            int n = 0;
+            file.read(reinterpret_cast<char*>(&n), sizeof(n));
+            for(int i=0; i<n; i++){
+                K tempK;
+                file.read(reinterpret_cast<char*>(&tempK), sizeof(tempK));
+                V tempV;
+                file.read(reinterpret_cast<char*>(&tempV), sizeof(tempV));
+                m.insert(pair<K,V>(tempK, tempV));
+            }
+        }
+        return;
+    }
+
+    template<class K>
+    static void read(map<K,string>& m, istream& file){
+        if(!file.eof()){
+            m.clear();
+            int n = 0;
+            file.read(reinterpret_cast<char*>(&n), sizeof(n));
+            for(int i=0; i<n; i++){
+                K tempK;
+                file.read(reinterpret_cast<char*>(&tempK), sizeof(tempK));
+                string tempV;
+                read(tempV, file);
+                m.insert(pair<K,string>(tempK, tempV));
+            }
+        }
+        return;
+    }
+
+    template<class V>
+    static void read(map<string,V>& m, istream& file){
+        if(!file.eof()){
+            m.clear();
+            int n = 0;
+            file.read(reinterpret_cast<char*>(&n), sizeof(n));
+            for(int i=0; i<n; i++){
+                string tempK;
+                read(tempK, file);
+                V tempV;
+                file.read(reinterpret_cast<char*>(&tempV), sizeof(tempV));
+                m.insert(pair<string,V>(tempK, tempV));
+            }
+        }
+        return;
+    }
+
+    static void read(map<string,string>& m, istream& file){
+        if(!file.eof()){
+            m.clear();
+            int n = 0;
+            file.read(reinterpret_cast<char*>(&n), sizeof(n));
+            for(int i=0; i<n; i++){
+                string tempK;
+                read(tempK, file);
+                string tempV;
+                read(tempV, file);
+                m.insert(pair<string,string>(tempK, tempV));
+            }
+        }
+        return;
+    } 
+
+    template<class K, class V>
+    void deserialize(map<K,V>& m, string fileName){
+        fstream file;
+        file.open(fileName, ios::in | ios::binary);
+        read(m, file);
+        file.flush();
+        file.close();
+    }   
 }
 #endif

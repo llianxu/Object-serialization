@@ -8,5 +8,6 @@
 #include <list>
 #include <typeinfo>
 #include <set>
+#include <map>
 
 #endif

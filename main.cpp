@@ -13,6 +13,10 @@ void list_string_type();
 void set_int_type();
 void set_double_type();
 void set_string_type();
+void map_int2double_type();
+void map_str2int_type();
+void map_int2str_type();
+void map_str2str_type();
 
 int main(void){
     string_type();
@@ -26,6 +30,10 @@ int main(void){
 	set_int_type();
 	set_double_type();
 	set_string_type();
+	map_int2double_type();
+	map_int2str_type();
+	map_str2int_type();
+	map_str2str_type();
     return 0;
 }
 
@@ -215,4 +223,99 @@ void set_string_type(){
 	cout << endl;
 	cout << "Is equal:" << (s0 == s1) << endl;
 	cout << endl;
+}
+
+void map_int2double_type(){
+	cout << "test for map<int, double>" << endl;
+	map<int, double> m0{
+		{1, 1.2},
+		{2, 2.4},
+		{3, 3.6}
+	};
+	map<int, double> m1;
+	serial2bin::serialize(m0, "map1.data");
+	serial2bin::deserialize(m1, "map1.data");
+	cout << "m0 is" << endl;
+	for(auto iter = m0.begin(); iter != m0.end(); iter++){
+		cout << (*iter).first << " " << (*iter).second << " ";
+	}
+	cout << endl;
+	cout << "m1 is" << endl;
+	for(auto iter = m1.begin(); iter != m1.end(); iter++){
+		cout << (*iter).first << " " << (*iter).second << " ";
+	}
+	cout << endl;
+	cout << "Is equal: " << (m0 == m1) << endl;
+	cout << endl; 
+
+}
+void map_str2int_type(){
+	cout << "test for map<string, int>" << endl;
+	map<string, int> m0{
+		{"lianxu1", 1},
+		{"lianxu2", 2},
+		{"lianxu3", 3}
+	};
+	map<string, int> m1;
+	serial2bin::serialize(m0, "map1.data");
+	serial2bin::deserialize(m1, "map1.data");
+	cout << "m0 is" << endl;
+	for(auto iter = m0.begin(); iter != m0.end(); iter++){
+		cout << (*iter).first << " " << (*iter).second << " ";
+	}
+	cout << endl;
+	cout << "m1 is" << endl;
+	for(auto iter = m1.begin(); iter != m1.end(); iter++){
+		cout << (*iter).first << " " << (*iter).second << " ";
+	}
+	cout << endl;
+	cout << "Is equal: " << (m0 == m1) << endl;
+	cout << endl; 	
+}
+void map_int2str_type(){
+	cout << "test for map<int, string>" << endl;
+	map<int, string> m0{
+		{1, "lianxu1"},
+		{2, "lianxu2"},
+		{3, "lianxu3"}
+	};
+	map<int, string> m1;
+	serial2bin::serialize(m0, "map1.data");
+	serial2bin::deserialize(m1, "map1.data");
+	cout << "m0 is" << endl;
+	for(auto iter = m0.begin(); iter != m0.end(); iter++){
+		cout << (*iter).first << " " << (*iter).second << " ";
+	}
+	cout << endl;
+	cout << "m1 is" << endl;
+	for(auto iter = m1.begin(); iter != m1.end(); iter++){
+		cout << (*iter).first << " " << (*iter).second << " ";
+	}
+	cout << endl;
+	cout << "Is equal: " << (m0 == m1) << endl;
+	cout << endl; 
+}
+void map_str2str_type(){
+
+	cout << "test for map<string, string>" << endl;
+	map<string, string> m0{
+		{"lianxu1k", "lianxu1v"},
+		{"lianxu2k", "lianxu2v"},
+		{"lianxu3k", "lianxu3v"}
+	};
+	map<string, string> m1;
+	serial2bin::serialize(m0, "map1.data");
+	serial2bin::deserialize(m1, "map1.data");
+	cout << "m0 is" << endl;
+	for(auto iter = m0.begin(); iter != m0.end(); iter++){
+		cout << (*iter).first << " " << (*iter).second << " ";
+	}
+	cout << endl;
+	cout << "m1 is" << endl;
+	for(auto iter = m1.begin(); iter != m1.end(); iter++){
+		cout << (*iter).first << " " << (*iter).second << " ";
+	}
+	cout << endl;
+	cout << "Is equal: " << (m0 == m1) << endl;
+	cout << endl; 
 }
