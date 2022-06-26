@@ -7,5 +7,8 @@
 #include <vector>
 #include <list>
 #include <typeinfo>
+#include <cstdarg>
+#include <set>
+#include <map>
 
 #endif
