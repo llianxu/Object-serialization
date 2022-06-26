@@ -6,17 +6,21 @@
 using namespace std;
 
 namespace serial2bin{
+    // serialization for arithmetic
     template<class T>
-    void serialize(T& item, string fileName){
+    void serialize_bin(T& item, string fileName){
         fstream file;
-        file.open(fileName, ios::out | ios::binary);
+        //ios:app add the content for file's end
+        file.open(fileName, ios::app | ios::binary);
+        // cast the pointer to char* for writing byte one by one into file
         file.write(reinterpret_cast<char*>(&item), sizeof(item));
+        // flush the cache
         file.flush();
         file.close();
     }
-
+    // deserialization for arithmetic
     template<class T>
-    void deserialize(T& item, string fileName){
+    void deserialize_bin(T& item, string fileName){
         fstream file;
         file.open(fileName, ios::in | ios::binary);
         file.read(reinterpret_cast<char*>(&item), sizeof(item));
@@ -24,45 +28,50 @@ namespace serial2bin{
     }
 
     // string's serialize
-    //string_write is used to write string to the binary data
-    // const for set
-    static void write(const string& str, ostream& file){
+    //string_serialize is used to write string to the binary data
+    // string_serialize_bin is the external interface
+    // const for set and map
+    static void serialize(const string& str, ostream& file){
         int n = str.size();
         file.write(reinterpret_cast<char*>(&n), sizeof(n));
+        // be careful for string need convert to const char*
         file.write(str.c_str(), n);
         return ; 
     }
 
-    void serialize(string& str, string fileName){
+    void serialize_bin(string& str, string fileName){
         fstream file;
-        file.open(fileName, ios::out | ios::binary);
-        write(str, file);
+        file.open(fileName, ios::app | ios::binary);
+        serialize(str, file);
         file.flush();
         file.close();
     }
 
     // string's deserialize
-    //string_read is used to read string from the binary data
-    static void read(string& str, istream& file){
+    //string_deserialize is used to read string from the binary data
+    //string _deserialize_bin is external interface
+    static void deserialize(string& str, istream& file){
         int n = 0;
         file.read(reinterpret_cast<char*>(&n), sizeof(n));
-        str.resize(n);
+        str.resize(n);  // before read, we must allocate the storage 
         file.read(const_cast<char*>(str.c_str()), n);
         return ; 
     }
 
-    void deserialize(string& str, string fileName){
+
+    void deserialize_bin(string& str, string fileName){
         fstream file;
         file.open(fileName, ios::in | ios::binary);
-        read(str, file);
+        deserialize(str, file);
         file.flush();
         file.close();
     }
 
     //vector's serialize
-	//vector_write is used to write vector to the binary file
+	//vector_serialize is used to write vector to the binary file
+    //vector_serialize_bin is external interface
     template<class T>
-    static void write(vector<T>& v, ostream& file){
+    static void serialize(vector<T>& v, ostream& file){
         int n = v.size();
         file.write(reinterpret_cast<char*>(&n), sizeof(n));
         for(auto& item : v){
@@ -71,29 +80,30 @@ namespace serial2bin{
         return ;
     }
 
-    static void write(vector<string>& v, ostream& file){
+    static void serialize(vector<string>& v, ostream& file){
         int n = v.size();
         file.write(reinterpret_cast<char*>(&n), sizeof(n));
         for(auto& item : v){
-            write(item, file);
+            serialize(item, file);
         }
         return ;
     }
 
     template<class T>
-    void serialize(vector<T>& v, string fileName){
+    void serialize_bin(vector<T>& v, string fileName){
         fstream file;
-        file.open(fileName, ios::out | ios::binary);
-        write(v, file);
+        file.open(fileName, ios::app | ios::binary);
+        serialize(v, file);
         file.flush();
         file.close();
     }
 
 
     //vector's deserialize
-    //vector_read is used to read from the binary data
+    //vector_deserialize is used to read from the binary data
+    //vector_deserialize_bin is external interface
     template<class T>
-    static void read(vector<T> &v, istream& file){
+    static void deserialize(vector<T> &v, istream& file){
         if(!file.eof()){
             v.clear();
             int n = 0;
@@ -107,25 +117,23 @@ namespace serial2bin{
         }
     }
 
-    static void read(vector<string> &v, istream& file){
-        if(!file.eof()){
-            v.clear();
-            int n = 0;
-            file.read(reinterpret_cast<char*>(&n), sizeof(n));
-            for(int i=0; i<n; i++){
-                string str;
-                read(str, file);
-                v.emplace_back(str);
-            }
-            return ;
+    static void deserialize(vector<string> &v, istream& file){
+        v.clear();
+        int n = 0;
+        file.read(reinterpret_cast<char*>(&n), sizeof(n));
+        for(int i=0; i<n; i++){
+            string str;
+            deserialize(str, file);
+            v.emplace_back(str);
         }
+        return ;
     }
 
     template<class T>
-    void deserialize(vector<T> &v, string fileName){
+    void deserialize_bin(vector<T> &v, string fileName){
         fstream file;
         file.open(fileName, ios::in | ios::binary);
-        read(v, file);
+        deserialize(v, file);
         file.flush();
         file.close();
         return ; 
@@ -133,41 +141,41 @@ namespace serial2bin{
 
     
     //list's serialize
-	//list_write is used to write list to the binary file
+	//list_serialize is used to write list to the binary file
+    //list _serialize_bin is external interface
     template<class T>
-    static void write(list<T>& l, ostream& file){
+    static void serialize(list<T>& l, ostream& file){
         int n = l.size();
         file.write(reinterpret_cast<char*>(&n), sizeof(n));
         for(auto& item : l){
             file.write(reinterpret_cast<char*>(&item), sizeof(item));
         }
         return ;
-
     }
 
-    static void write(list<string>& l, ostream& file){
+    static void serialize(list<string>& l, ostream& file){
         int n = l.size();
         file.write(reinterpret_cast<char*>(&n), sizeof(n));
         for(auto& item : l){
-            write(item, file);
+            serialize(item, file);
         }
         return ;
     }
 
     template<class T>
-    void serialize(list<T>& l, string fileName){
+    void serialize_bin(list<T>& l, string fileName){
         fstream file;
-        file.open(fileName, ios::out | ios::binary);
-        write(l, file);
+        file.open(fileName, ios::app | ios::binary);
+        serialize(l, file);
         file.flush();
         file.close();
     }
 
     //list's deserialize
-	//list_read is used to read list from the binary file
+	//list_deserialize is used to read list from the binary file
+    //list_deserialize_bin is external interface
     template<class T>
-    static void read(list<T>& l, istream& file){
-        if(!file.eof()){
+    static void deserialize(list<T>& l, istream& file){
             l.clear();
             int n = 0;
             file.read(reinterpret_cast<char*>(&n), sizeof(n));
@@ -176,38 +184,36 @@ namespace serial2bin{
                 file.read(reinterpret_cast<char*>(&item), sizeof(item));
                 l.emplace_back(item);
             }
-        }
         return ;
     }
 
 
-    static void read(list<string>& l, istream& file){
-        if(!file.eof()){
-            l.clear();
-            int n = 0;
-            file.read(reinterpret_cast<char*>(&n), sizeof(n));
-            for(int i=0; i<n; i++){
-                string str;
-                read(str, file);
-                l.emplace_back(str);
-            }
+    static void deserialize(list<string>& l, istream& file){
+        l.clear();
+        int n = 0;
+        file.read(reinterpret_cast<char*>(&n), sizeof(n));
+        for(int i=0; i<n; i++){
+            string str;
+            deserialize(str, file);
+            l.emplace_back(str);
         }
         return ;
     }
 
     template<class T> 
-    void deserialize(list<T>& l, string fileName){
+    void deserialize_bin(list<T>& l, string fileName){
         fstream file;
         file.open(fileName, ios::in | ios::binary);
-        read(l, file);
+        deserialize(l, file);
         file.flush();
         file.close();
     }
 
     //set's serialize
-	//set_write is used to write set to the binary file
+	//set_serialize is used to write set to the binary file
+    //set_serialize_bin is external interface
     template<class T>
-    static void write(set<T>& s, ostream& file){
+    static void serialize(set<T>& s, ostream& file){
         int n = s.size();
         file.write(reinterpret_cast<char*>(&n), sizeof(n));
         for(auto& item : s){
@@ -217,67 +223,66 @@ namespace serial2bin{
         return ;
     }
 
-    static void write(set<string>& s, ostream& file){
+    static void serialize(set<string>& s, ostream& file){
         int n = s.size();
         file.write(reinterpret_cast<char*>(&n), sizeof(n));
         for(auto& item : s){
-            write(item, file);
+            serialize(item, file);
         }
         return ;
     }
 
     template<class T>
-    void serialize(set<T> &s, string fileName){
+    void serialize_bin(set<T> &s, string fileName){
         fstream file;
-        file.open(fileName, ios::out | ios::binary);
-        write(s, file);
+        file.open(fileName, ios::app | ios::binary);
+        serialize(s, file);
         file.flush();
         file.close();
     }
 
     //set's deserialize
-	//set_read is used to read set from the binary file
+	//set_deserialize is used to read set from the binary file
+    //set_deserialize is external interface
     template<class T>
-    static void read(set<T>& s, istream& file){
-        if(!file.eof()){
-            s.clear();
-            int n = 0;
-            file.read(reinterpret_cast<char*>(&n), sizeof(n));
-            for(int i=0; i<n; i++){
-                T item;
-                file.read(reinterpret_cast<char*>(&item), sizeof(item));
-                s.insert(item);
-            }
+    static void deserialize(set<T>& s, istream& file){
+        s.clear();
+        int n = 0;
+        file.read(reinterpret_cast<char*>(&n), sizeof(n));
+        for(int i=0; i<n; i++){
+            T item;
+            file.read(reinterpret_cast<char*>(&item), sizeof(item));
+            s.insert(item);
         }
+        return ;
     }
 
-    static void read(set<string>& s, istream& file){
-        if(!file.eof()){
-            s.clear();
-            int n = 0;
-            file.read(reinterpret_cast<char*>(&n), sizeof(n));
-            for(int i=0; i<n; i++){
-                string str;
-                read(str, file);
-                s.insert(str);
-            }
+    static void deserialize(set<string>& s, istream& file){
+        s.clear();
+        int n = 0;
+        file.read(reinterpret_cast<char*>(&n), sizeof(n));
+        for(int i=0; i<n; i++){
+            string str;
+            deserialize(str, file);
+            s.insert(str);
         }
         return ;
     }
 
     template<class T>
-    void deserialize(set<T>& s, string fileName){
+    void deserialize_bin(set<T>& s, string fileName){
         fstream file;
         file.open(fileName, ios::in | ios::binary);
-        read(s, file);
+        deserialize(s, file);
         file.flush();
         file.close();
     }
 
     //map's serialize
-    //map_write is used to write map to the binary file
+    //map_serialize is used to write map to the binary file
+    //map_serialize_bin is external interface
     template<class K, class V>
-    static void write(map<K,V>& m, ostream& file){
+    static void serialize(map<K,V>& m, ostream& file){
         int n = m.size();
         file.write(reinterpret_cast<char*>(&n), sizeof(n));
         for(auto& item : m){
@@ -290,24 +295,24 @@ namespace serial2bin{
     }
 
     template<class K>
-    static void write(map<K,string>& m, ostream& file){
+    static void serialize(map<K,string>& m, ostream& file){
         int n = m.size();
         file.write(reinterpret_cast<char*>(&n), sizeof(n));
         for(auto& item : m){
             K* ptrk;
             ptrk = const_cast<K*>(&(item.first));
             file.write(reinterpret_cast<char*>(ptrk), sizeof(item.first));
-            write(item.second, file);
+            serialize(item.second, file);
         }
         return ;
     }
 
     template<class V>
-    static void write(map<string,V>& m, ostream& file){
+    static void serialize(map<string,V>& m, ostream& file){
         int n = m.size();
         file.write(reinterpret_cast<char*>(&n), sizeof(n));
         for(auto& item : m){
-            write(item.first, file);
+            serialize(item.first, file);
             V* ptrv;
             ptrv = const_cast<V*>(&(item.second));
             file.write(reinterpret_cast<char*>(ptrv), sizeof(item.second));
@@ -315,101 +320,107 @@ namespace serial2bin{
         return ;
     }
 
-    static void write(map<string, string>& m, ostream& file){
+    static void serialize(map<string, string>& m, ostream& file){
         int n = m.size();
         file.write(reinterpret_cast<char*>(&n), sizeof(n));
         for(auto& item : m){
-            write(item.first, file);
-            write(item.second, file);
+            serialize(item.first, file);
+            serialize(item.second, file);
         }
         return ;
     }
 
     template<class K, class V>
-    static void serialize(map<K,V>& m, string fileName){
+    static void serialize_bin(map<K,V>& m, string fileName){
         fstream file;
-        file.open(fileName, ios::out | ios::binary);
-        write(m, file);
+        file.open(fileName, ios::app | ios::binary);
+        serialize(m, file);
         file.flush();
         file.close();
     }
 
     //map's deserialize
-    //map_read is used to read map from the binary file
+    //map_deserialize is used to read map from the binary file
+    //map_deserialize_bin is external interface
     template<class K, class V>
-    static void read(map<K,V>& m, istream& file){
-        if(!file.eof()){
-            m.clear();
-            int n = 0;
-            file.read(reinterpret_cast<char*>(&n), sizeof(n));
-            for(int i=0; i<n; i++){
-                K tempK;
-                file.read(reinterpret_cast<char*>(&tempK), sizeof(tempK));
-                V tempV;
-                file.read(reinterpret_cast<char*>(&tempV), sizeof(tempV));
-                m.insert(pair<K,V>(tempK, tempV));
-            }
+    static void deserialize(map<K,V>& m, istream& file){
+        m.clear();
+        int n = 0;
+        file.read(reinterpret_cast<char*>(&n), sizeof(n));
+        for(int i=0; i<n; i++){
+            K tempK;
+            file.read(reinterpret_cast<char*>(&tempK), sizeof(tempK));
+            V tempV;
+            file.read(reinterpret_cast<char*>(&tempV), sizeof(tempV));
+            m.insert(pair<K,V>(tempK, tempV));
         }
         return;
     }
 
     template<class K>
-    static void read(map<K,string>& m, istream& file){
-        if(!file.eof()){
-            m.clear();
-            int n = 0;
-            file.read(reinterpret_cast<char*>(&n), sizeof(n));
-            for(int i=0; i<n; i++){
-                K tempK;
-                file.read(reinterpret_cast<char*>(&tempK), sizeof(tempK));
-                string tempV;
-                read(tempV, file);
-                m.insert(pair<K,string>(tempK, tempV));
-            }
+    static void deserialize(map<K,string>& m, istream& file){
+        m.clear();
+        int n = 0;
+        file.read(reinterpret_cast<char*>(&n), sizeof(n));
+        for(int i=0; i<n; i++){
+            K tempK;
+            file.read(reinterpret_cast<char*>(&tempK), sizeof(tempK));
+            string tempV;
+            deserialize(tempV, file);
+            m.insert(pair<K,string>(tempK, tempV));
         }
         return;
     }
 
     template<class V>
-    static void read(map<string,V>& m, istream& file){
-        if(!file.eof()){
-            m.clear();
-            int n = 0;
-            file.read(reinterpret_cast<char*>(&n), sizeof(n));
-            for(int i=0; i<n; i++){
-                string tempK;
-                read(tempK, file);
-                V tempV;
-                file.read(reinterpret_cast<char*>(&tempV), sizeof(tempV));
-                m.insert(pair<string,V>(tempK, tempV));
-            }
+    static void deserialize(map<string,V>& m, istream& file){
+        m.clear();
+        int n = 0;
+        file.read(reinterpret_cast<char*>(&n), sizeof(n));
+        for(int i=0; i<n; i++){
+            string tempK;
+            deserialize(tempK, file);
+            V tempV;
+            file.read(reinterpret_cast<char*>(&tempV), sizeof(tempV));
+            m.insert(pair<string,V>(tempK, tempV));
         }
         return;
     }
 
-    static void read(map<string,string>& m, istream& file){
-        if(!file.eof()){
-            m.clear();
-            int n = 0;
-            file.read(reinterpret_cast<char*>(&n), sizeof(n));
-            for(int i=0; i<n; i++){
-                string tempK;
-                read(tempK, file);
-                string tempV;
-                read(tempV, file);
-                m.insert(pair<string,string>(tempK, tempV));
-            }
+    static void deserialize(map<string,string>& m, istream& file){
+        m.clear();
+        int n = 0;
+        file.read(reinterpret_cast<char*>(&n), sizeof(n));
+        for(int i=0; i<n; i++){
+            string tempK;
+            deserialize(tempK, file);
+            string tempV;
+            deserialize(tempV, file);
+            m.insert(pair<string,string>(tempK, tempV));
         }
         return;
     } 
 
     template<class K, class V>
-    void deserialize(map<K,V>& m, string fileName){
+    void deserialize_bin(map<K,V>& m, string fileName){
         fstream file;
         file.open(fileName, ios::in | ios::binary);
-        read(m, file);
+        deserialize(m, file);
         file.flush();
         file.close();
     }   
+
+    // usertype serialize 
+	void userDefinedType(string fileName)
+	{
+		return;
+	}
+
+	template<class H,class ...Args>
+	void userDefinedType(string fileName, H head, Args ...rest)
+	{
+		serialize_bin(head, fileName);
+		userDefinedType(fileName, rest...);
+	}
 }
 #endif
